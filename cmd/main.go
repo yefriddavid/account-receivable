@@ -21,6 +21,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+  "github.com/gen2brain/beeep"
+
 )
 
 var SysConfigFile = ""
@@ -128,7 +130,8 @@ type AccountSavings struct {
 }
 
 type Settings struct {
-	CronReminder     string `mapstructure:"cron-reminder"`
+	Cron             string
+	CronReminders    []string `mapstructure:"cron-reminders"`
 	TimeZone         string `mapstructure:"time-zone"`
 	OutputFilePrefix string `mapstructure:"output-file-prefix"`
 	StringFormatDate string `mapstructure:"string-format-date"`
@@ -201,16 +204,25 @@ func main() {
 	var config Config
 	config, _ = loadSetting()
 
-	if config.Setting.CronReminder == "" {
+	if config.Setting.Cron == "" {
 		startProgram(config)
 	} else {
 		fmt.Println("Start with cron")
-		fmt.Println(config.Setting.CronReminder)
+		fmt.Println(config.Setting.Cron)
 		done := make(chan bool)
 
 		nyc, _ := time.LoadLocation(config.Setting.TimeZone)
 		c := cron.New(cron.WithLocation(nyc))
-		c.AddFunc(config.Setting.CronReminder, func() { startProgram(config) })
+
+		// load task
+    c.AddFunc(config.Setting.Cron, func() { startProgram(config) })
+
+		// Load reminders
+
+    for _, reminder := range config.Setting.CronReminders {
+      c.AddFunc(reminder, func() { beeep.Notify("Account Recievables", "next send account receivable: " + config.Setting.Cron, "") })
+    }
+
 		c.Start()
 
 		<-done

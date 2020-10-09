@@ -10,14 +10,14 @@ DevConfigFile := $(DEV_SOURCE_CONFIG_FILE)
 MyEmailPassword := $(MY_EMAIL_PASSWORD)
 MyBinarySecret := $(shell apg -m16 | head -n 1)
 
-LDFLAGS := "-s -w -X main.secret=$(MyBinarySecret) -X main.SysConfigFile=$(SysConfigFile) -X main.Version=$(Version) -X main.GitCommit=$(GitCommit) -X main.Author=$(Author) -X main.GitShortCommit=$(GitShortCommit) -X main.ReleaseDate='$(ReleaseDate)'"
+LDFLAGS := -s -w -X main.secret=$(MyBinarySecret) -X main.Version=$(Version) -X main.GitCommit=$(GitCommit) -X main.Author=$(Author) -X main.GitShortCommit=$(GitShortCommit) -X main.ReleaseDate='$(ReleaseDate)'
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ".:*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 run:
 run:
-	go run -ldflags $(LDFLAGS) cmd/main.go -configFile=$(shell pwd)/config.yml
+	go run -ldflags "$(LDFLAGS)" cmd/main.go -configFile=$(shell pwd)/config.yml
 
 decryptPass:
 decryptPass:
@@ -52,7 +52,7 @@ binMv:
 
 build:
 build: ## build application
-	@go build -ldflags $(LDFLAGS) cmd/main.go
+	@go build -ldflags "$(LDFLAGS) -X main.SysConfigFile=$(SysConfigFile)" cmd/main.go
 
 copy-local-config:
 copy-local-config: ## Copy file settings
