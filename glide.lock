@@ -1,0 +1,64 @@
+hash: 2167451c104791bf731cd3d24a35a85f280a0f112419c92ce298786cb2fe320d
+updated: 2020-09-21T01:00:31.474827514-03:00
+imports:
+- name: github.com/divan/num2words
+  version: 57dba452f9421c72bc7fa8e44e4596419bde0355
+- name: github.com/fsnotify/fsnotify
+  version: 7f4cf4dd2b522a984eaca51d1ccee54101d3414a
+- name: github.com/hashicorp/hcl
+  version: d58017782ffeccb02d0f461c8710753e5da49834
+  subpackages:
+  - hcl/ast
+  - hcl/parser
+  - hcl/printer
+  - hcl/scanner
+  - hcl/strconv
+  - hcl/token
+  - json/parser
+  - json/scanner
+  - json/token
+- name: github.com/jung-kurt/gofpdf
+  version: 49e44c73f28fbc4ea0b011c7d4078d0a1523e44f
+- name: github.com/magiconair/properties
+  version: e55ec40311b90df900426eae806bb80a40154583
+- name: github.com/mitchellh/mapstructure
+  version: 9e1e4717f8567d7ead72d070d064ad17d444a67e
+- name: github.com/pelletier/go-toml
+  version: e6908614ee78e01b71b0adadb1379acff6da9320
+- name: github.com/spf13/afero
+  version: a4ea980f2d023f22c7eede4c142190115449de5b
+  subpackages:
+  - mem
+- name: github.com/spf13/cast
+  version: 8d17101741c81653ee960aa20f9febb31f1218aa
+- name: github.com/spf13/jwalterweatherman
+  version: ce7498392da6d96a17a449ce0e96172af864d822
+- name: github.com/spf13/pflag
+  version: 6971c29c4a22981adeaee7f4b437c0cffe08c031
+- name: github.com/spf13/viper
+  version: 3826be313591f83193f048520482a7b3cf17d506
+- name: github.com/subosito/gotenv
+  version: 81e80d2d867a44e9961d23d376cf2c4955e700ca
+- name: golang.org/x/crypto
+  version: 5c72a883971a4325f8c62bf07b6d38c20ea47a6a
+  subpackages:
+  - pbkdf2
+- name: golang.org/x/sys
+  version: af09f7315aff1cbc48fb21d21aa55d67b4f914c5
+  subpackages:
+  - internal/unsafeheader
+  - unix
+- name: golang.org/x/text
+  version: a8b4671254579a87fadf9f7fa577dc7368e9d009
+  subpackages:
+  - transform
+  - unicode/norm
+- name: gopkg.in/alexcesaro/quotedprintable.v3
+  version: 2caba252f4dc53eaf6b553000885530023f54623
+- name: gopkg.in/gomail.v2
+  version: 41f3572897373c5538c50a2402db15db079fa4fd
+- name: gopkg.in/ini.v1
+  version: fcd0515f91612282aba5f5231a7dd71487e6dd8f
+- name: gopkg.in/yaml.v2
+  version: 0b1645d91e851e735d3e23330303ce81f70adbe3
+testImports: []

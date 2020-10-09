@@ -1,0 +1,7 @@
+history
+config.yml
+copy_config.yml
+example.config.yml
+.editorconfig
+/vendor
+.env
