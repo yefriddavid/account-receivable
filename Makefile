@@ -92,7 +92,7 @@ copy-configs:
 
 release:
 release:
-	goreleaser --skip-validate --skip-publish
+	DATE=$(ReleaseDate) AUTHOR=$(Author) goreleaser --skip-validate --skip-publish --rm-dist
 
 
 local-release:
