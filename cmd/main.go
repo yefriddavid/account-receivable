@@ -212,7 +212,8 @@ func main() {
 		done := make(chan bool)
 
 		nyc, _ := time.LoadLocation(config.Setting.TimeZone)
-		c := cron.New(cron.WithLocation(nyc))
+		c := cron.NewWithLocation(nyc)
+		//c := cron.New(cron.WithLocation(nyc))
 
 		// load task
     c.AddFunc(config.Setting.Cron, func() { startProgram(config) })

@@ -7,12 +7,15 @@ before:
     # you may remove this if you don't need go generate
     - go generate ./...
 builds:
-  - env:
+  - main: ./cmd
+    #ldflags:
+    #  - '-s -w -X main.Version={{.Version}} -X main.VersionStr={{.Version}} -X main.GitCommit={{.Commit}} -X main.GitShortCommit={{.ShortCommit}} -X main.Date={{.Date}} -X main.Author={{.Env.AUTHOR}} -X main.ReleaseDate={{.Env.DATE}}'
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
-      - windows
-      - darwin
+      #- windows
+      #- darwin
 archives:
   - replacements:
       darwin: Darwin
