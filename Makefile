@@ -90,6 +90,10 @@ copy-configs:
 	sudo cp ./sign.png $(shell echo $(SysConfigFile) | xargs dirname)
 
 
+release:
+release:
+	goreleaser --skip-validate --skip-publish
+
 
 local-release:
 local-release:
