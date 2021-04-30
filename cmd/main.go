@@ -25,12 +25,25 @@ import (
 
 )
 
-var SysConfigFile = ""
+var Version = "No Provided"
+var GitCommit = "No Provided"
+var GitShortCommit = "No Provided"
+var Date = "No Provided"
+var VersionStr = ""
+
+var Author = ""
+var Homepage = ""
+var ReleaseDate = ""
+
+
+//var SysConfigFile = ""
 var secret string = "yedcakKormOnesEn"
 
 var (
-	configFile       = flag.String("configFile", "", "Configuration file")
+	configFile       = flag.String("configFile", "/etc/AccountReceivable.yml", "Configuration file")
 	stringFormatDate = flag.String("format-date", "2006-01-02", "Format of date")
+  showVersion        = flag.Bool("version", false, "Show version")
+
 
 	// arguments for command tools
 	secretDecriptPass = flag.String("secret-decrypt-pass", "", "Secret for decript pass")
@@ -43,9 +56,10 @@ func init() {
 
 	flag.Parse()
 
-	if *configFile == "" && SysConfigFile != "" {
+	//if *configFile == "" && SysConfigFile != "" {
+	/*if *configFile == "" && SysConfigFile != "" {
 		*configFile = SysConfigFile
-	}
+	}*/
 
 	if fileExists(*configFile) {
 		// fmt.Println("File exist")
@@ -187,6 +201,14 @@ type Config struct {
 func main() {
 
 	flag.Parse()
+
+	if *showVersion {
+		//fmt.Println(Version)
+		showAppInfo()
+		return
+	}
+
+
 	if *justEncrypt == true {
 		result := encrypt(secret, *rawUnsecureText)
 		fmt.Println(result)
@@ -491,3 +513,13 @@ func decrypt(passphrase, ciphertext string) string {
 	data, _ = aesgcm.Open(nil, iv, data, nil)
 	return string(data)
 }
+
+func showAppInfo() {
+	fmt.Printf("ReleaseDate: %s\n", ReleaseDate)
+	fmt.Printf("Revision: %s\n", GitCommit)
+	fmt.Printf("Short Revision: %s\n", GitShortCommit)
+	fmt.Printf("Author: %s\n", Author)
+	fmt.Printf("Version: %s\n", Version)
+	fmt.Printf("Homepage: %s\n", Homepage)
+}
+

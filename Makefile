@@ -93,13 +93,14 @@ copy-configs:
 
 local-release:
 local-release:
-	sudo ln -s main /usr/local/bin/AccountsRecievable
+	sudo rm -rf /usr/local/bin/AccountsRecievable
+	sudo ln -s $(shell pwd)/dist/account-receivable_linux_amd64/account-receivable /usr/local/bin/AccountsRecievable
 #	sudo mv main /usr/local/bin/AccountsRecievable
 #sudo cp ./dist/traze-installer_linux_amd64/traze-installer /usr/local/bin/traze-installer
 
 copy-local-config:
 copy-local-config:
-	sudo rm -rf /etc/traze-installer-config.yaml
-	sudo ln -s $(shell pwd)/config.yaml /etc/traze-installer-config.yaml
+	sudo rm -rf /etc/AccountReceivable.yml
+	sudo ln -s $(shell pwd)/config.yml /etc/AccountReceivable.yml
 
 
