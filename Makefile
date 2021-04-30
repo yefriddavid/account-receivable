@@ -46,17 +46,17 @@ configureVersion:
 configureVersion:
 	gvm use go1.15.2
 
-binMv:
-binMv:
-	sudo mv main /usr/local/bin/AccountsRecievable
+#binMv:
+#binMv:
+#	sudo mv main /usr/local/bin/AccountsRecievable
 
 build:
 build: ## build application
 	@go build -ldflags "$(LDFLAGS) -X main.SysConfigFile=$(SysConfigFile)" cmd/main.go
 
-copy-local-config:
-copy-local-config: ## Copy file settings
-	cp ./config.yml $(SysConfigFile)
+#copy-local-config:
+#copy-local-config: ## Copy file settings
+#	cp ./config.yml $(SysConfigFile)
 
 show:
 show:
@@ -88,4 +88,18 @@ setExampleConfigFile:
 copy-configs:
 copy-configs:
 	sudo cp ./sign.png $(shell echo $(SysConfigFile) | xargs dirname)
+
+
+
+local-release:
+local-release:
+	sudo ln -s main /usr/local/bin/AccountsRecievable
+#	sudo mv main /usr/local/bin/AccountsRecievable
+#sudo cp ./dist/traze-installer_linux_amd64/traze-installer /usr/local/bin/traze-installer
+
+copy-local-config:
+copy-local-config:
+	sudo rm -rf /etc/traze-installer-config.yaml
+	sudo ln -s $(shell pwd)/config.yaml /etc/traze-installer-config.yaml
+
 

@@ -5,3 +5,4 @@ example.config.yml
 .editorconfig
 /vendor
 .env
+dist/
