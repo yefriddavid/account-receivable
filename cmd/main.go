@@ -1,21 +1,11 @@
 package main
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/md5"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
 	"github.com/robfig/cron"
-	"golang.org/x/crypto/pbkdf2"
 	//"reflect"
 	"flag"
 	"fmt"
-	"github.com/divan/num2words"
-	"github.com/jung-kurt/gofpdf"
 	"github.com/spf13/viper"
-	"gopkg.in/gomail.v2"
 	"os"
 	"path"
 	"strconv"
@@ -23,6 +13,7 @@ import (
 	"time"
   "github.com/gen2brain/beeep"
   structs "github.com/yefriddavid/AccountsReceivable/src/structs"
+  utils "github.com/yefriddavid/AccountsReceivable/src/utils"
 
 )
 
@@ -38,13 +29,13 @@ var ReleaseDate = ""
 
 
 //var SysConfigFile = ""
-var secret string = "yedcakKormOnesEn"
 
 var (
 	configFile       = flag.String("configFile", "/etc/AccountReceivable.yml", "Configuration file")
 	stringFormatDate = flag.String("format-date", "2006-01-02", "Format of date")
   showVersion        = flag.Bool("version", false, "Show version")
   showEmailTo        = flag.Bool("showEmailTo", false, "Show email to")
+  specificEmailToId         = flag.Int("specificEmailToId", 0, "Specific email to")
 
 
 	// arguments for command tools
@@ -104,14 +95,14 @@ func main() {
 
 
 	if *justEncrypt == true {
-		result := encrypt(secret, *rawUnsecureText)
+		result := utils.Encrypt(utils.GetSecret(), *rawUnsecureText)
 		fmt.Println(result)
 
 		return
 	}
 	if *justDecrypt == true {
 		// result := decrypt(secret, *rawUnsecureText)
-		result := decrypt(*secretDecriptPass, *rawUnsecureText)
+		result := utils.Decrypt(*secretDecriptPass, *rawUnsecureText)
 		fmt.Println(result)
 
 		return
@@ -119,13 +110,16 @@ func main() {
 
 	var config structs.Config
 	config, _ = loadSetting()
+  formatEmail := GetFormatEmail(config, *specificEmailToId)
 
 	if *showEmailTo {
-    fmt.Println(config.Setting.Email.To)
+    fmt.Println(formatEmail.EmailTo)
 		return
 	}
+
+
 	if config.Setting.Cron == "" {
-		startProgram(config)
+		startProgram(config, formatEmail)
 	} else {
 		fmt.Println("Start with cron")
 		fmt.Println(config.Setting.Cron)
@@ -136,10 +130,9 @@ func main() {
 		//c := cron.New(cron.WithLocation(nyc))
 
 		// load task
-    c.AddFunc(config.Setting.Cron, func() { startProgram(config) })
+    c.AddFunc(config.Setting.Cron, func() { startProgram(config, formatEmail) })
 
 		// Load reminders
-
     for _, reminder := range config.Setting.CronReminders {
       c.AddFunc(reminder, func() { beeep.Notify("Account Recievables", "next send account receivable: " + config.Setting.Cron, "") })
     }
@@ -150,7 +143,7 @@ func main() {
 	}
 }
 
-func startProgram(config structs.Config) {
+func startProgram(config structs.Config, formatEmail structs.FormatEmail) {
 
 	fmt.Println("Start taks")
 	var setting structs.Settings
@@ -217,117 +210,27 @@ func startProgram(config structs.Config) {
 
 	config.Setting.Email.Body = body
 
-	generatePdf(config, fileName)
-	send(body, config, fileName)
+	utils.GeneratePdf(config, fileName)
+	utils.Send(body, formatEmail, fileName)
 
 }
 
-func generatePdf(config structs.Config, fileName string) {
+func GetFormatEmail(config structs.Config, specificEmailToId int) (email structs.FormatEmail) {
 
-	pdf := gofpdf.New("P", "mm", "letter", "")
-	pdf.AddPage()
+  email.EmailFrom = config.Setting.Email.From.Email
+  email.EmailTo = config.Setting.Email.To[specificEmailToId].Email
+  email.EmailCc = config.Setting.Email.Cc.Email
+  email.Subject = config.Setting.Email.Subject
+	email.Pass = utils.Decrypt(utils.GetSecret(), config.Smtp.Password)
+  email.Username = config.Smtp.Username
+  email.Port = config.Smtp.Port
+  email.Smtp = config.Smtp.Smtp
+  email.EmailFromFullName = config.Setting.Email.From.FullName
+  email.EmailCcFullName = config.Setting.Email.Cc.FullName
 
-	html := pdf.HTMLBasicNew()
-	getHtmlTemplate(pdf, html, config)
-
-	err := pdf.OutputFileAndClose(fileName)
-	if err != nil {
-		fmt.Println(err)
-	}
-
+  return
 }
 
-func getHtmlTemplate(pdf *gofpdf.Fpdf, html gofpdf.HTMLBasicType, config structs.Config) (bool, error) {
-
-	setting := config.Setting
-	saleOrder := config.SaleOrder
-	total, _ := strconv.Atoi(fmt.Sprintf("%.0f", saleOrder.Total))
-
-	saleOrderBody := saleOrder.Content.Body.Raw
-	saleOrderBodySign := saleOrder.Content.Sign.Raw
-	saleOrderTitle := saleOrder.Content.Title.Raw
-	saleOrderOwnTo := saleOrder.Content.OwnTo.Raw
-
-	saleOrderTitle = strings.Replace(saleOrderTitle, "{SaleOrder.Number}", saleOrder.Number, -1)
-	saleOrderTitle = strings.Replace(saleOrderTitle, "{SaleOrder.City}", saleOrder.City, -1)
-
-	pdf.SetFont(saleOrder.Content.Title.Font.Family, saleOrder.Content.Title.Font.Style, saleOrder.Content.Title.Font.Size)
-	_, lineHt := pdf.GetFontSize()
-
-	html.Write(lineHt, saleOrderTitle)
-
-	saleOrderOwnTo = strings.Replace(saleOrderOwnTo, "{Employee.FullName}", saleOrder.Employee.FullName, -1)
-	saleOrderOwnTo = strings.Replace(saleOrderOwnTo, "{Employee.DocumentNumber}", saleOrder.Employee.DocumentNumber, -1)
-	saleOrderOwnTo = strings.Replace(saleOrderOwnTo, "{Employee.PhoneNumber}", saleOrder.Employee.PhoneNumber, -1)
-	saleOrderOwnTo = strings.Replace(saleOrderOwnTo, "{SaleOrder.Address}", saleOrder.Address, -1)
-
-	html.Write(lineHt, saleOrderOwnTo)
-
-	pdf.SetFont(saleOrder.Content.Body.Font.Family,
-		saleOrder.Content.Body.Font.Style, saleOrder.Content.Body.Font.Size)
-	_, lineHt = pdf.GetFontSize()
-
-	saleOrderBody = strings.Replace(saleOrderBody, "{SaleOrder.NameOfMonth}", saleOrder.FormatDate.Format("January"), -1)
-	saleOrderBody = strings.Replace(saleOrderBody, "{SaleOrder.AmountLetters}", num2words.ConvertAnd(total), -1)
-	saleOrderBody = strings.Replace(saleOrderBody, "{SaleOrder.Amount}", fmt.Sprintf("%.0f", saleOrder.Total), -1)
-	saleOrderBody = strings.Replace(saleOrderBody, "{SaleOrder.TotalHours}", strconv.Itoa(saleOrder.TotalHours), -1)
-	saleOrderBody = strings.Replace(saleOrderBody, "{SaleOrder.CostPerHour}", fmt.Sprintf("%.2f", setting.CostPerHour), -1)
-
-	if saleOrder.Bonus <= 0 {
-		saleOrderBody = strings.Replace(saleOrderBody, "{BonusDescription}", "", -1)
-	} else {
-		bonusLetters := num2words.ConvertAnd(int(saleOrder.Bonus))
-		bonusDescription := ` and ` + bonusLetters + ` dollars equivalent to ` + saleOrder.BonusDescription //+ "."
-
-		saleOrderBody = strings.Replace(saleOrderBody, "{BonusDescription}", bonusDescription, -1)
-	}
-
-	saleOrderBody = strings.Replace(saleOrderBody, "{upper:AccountSaving.BankName}", strings.ToUpper(setting.AccountSaving.BankName), -1)
-	saleOrderBody = strings.Replace(saleOrderBody, "{title:AccountSaving.BankName}", strings.Title(strings.ToLower(setting.AccountSaving.BankName)), -1)
-	saleOrderBody = strings.Replace(saleOrderBody, "{AccountSaving.AccountNumber}", setting.AccountSaving.AccountNumber, -1)
-	saleOrderBody = strings.Replace(saleOrderBody, "{Employee.FullName}", saleOrder.Employee.FullName, -1)
-	saleOrderBody = strings.Replace(saleOrderBody, "{AccountSaving.SwiftCode}", setting.AccountSaving.SwiftCode, -1)
-	saleOrderBody = strings.Replace(saleOrderBody, "{AccountSaving.FullSwiftCode}", setting.AccountSaving.FullSwiftCode, -1)
-	saleOrderBody = strings.Replace(saleOrderBody, "{AccountSaving.Address}", setting.AccountSaving.FullSwiftCode, -1)
-	saleOrderBody = strings.Replace(saleOrderBody, "{SaleOrder.City}", saleOrder.City, -1)
-	saleOrderBody = strings.Replace(saleOrderBody, "{Setting.PresentationFormatDate}", setting.FormatDate.Format(presentationFormatDate), -1)
-
-	html.Write(lineHt, saleOrderBody)
-	url := setting.Email.Template.SignImage.Path
-	pdf.Image(url, setting.Email.Template.SignImage.Position.AxisX,
-		setting.Email.Template.SignImage.Position.AxisY,
-		setting.Email.Template.SignImage.Position.Rect,
-		0, false, "", 0, "")
-
-	saleOrderBodySign = strings.Replace(saleOrderBodySign, "{upper:Employee.FullName}", strings.ToUpper(saleOrder.Employee.FullName), -1)
-	saleOrderBodySign = strings.Replace(saleOrderBodySign, "{Employee.DocumentNumber}", saleOrder.Employee.DocumentNumber, -1)
-	saleOrderBodySign = strings.Replace(saleOrderBodySign, "{Employee.DocumentCity}", saleOrder.Employee.DocumentCity, -1)
-	saleOrderBodySign = strings.Replace(saleOrderBodySign, "{upper:Employee.Position}", strings.ToUpper(saleOrder.Employee.Position), -1)
-
-	pdf.SetFont(saleOrder.Content.Sign.Font.Family, saleOrder.Content.Sign.Font.Style, saleOrder.Content.Sign.Font.Size)
-	html.Write(lineHt, saleOrderBodySign)
-
-	return true, nil
-}
-
-func send(body string, config structs.Config, fileName string) {
-
-	m := gomail.NewMessage()
-	m.SetAddressHeader("From", config.Setting.Email.From.Email, config.Setting.Email.From.FullName)
-	m.SetAddressHeader("Cc", config.Setting.Email.Cc.Email, config.Setting.Email.Cc.FullName)
-
-	m.SetHeader("To", config.Setting.Email.To.Email)
-	m.SetHeader("Subject", config.Setting.Email.Subject)
-	m.SetBody("text/html", body)
-	m.Attach(fileName)
-
-	pass := decrypt(secret, config.Smtp.Password)
-	d := gomail.NewPlainDialer(config.Smtp.Smtp, config.Smtp.Port, config.Smtp.Username, pass)
-
-	if err := d.DialAndSend(m); err != nil {
-		panic(err)
-	}
-}
 
 func monthsCountSince(createdAtTime time.Time) int {
 	now := time.Now()
@@ -372,45 +275,8 @@ func loadSetting() (config structs.Config, err error) {
 	return
 }
 
-func createHash(key string) string {
-	hasher := md5.New()
-	hasher.Write([]byte(key))
-	return hex.EncodeToString(hasher.Sum(nil))
-}
 
-func deriveKey(passphrase string, salt []byte) ([]byte, []byte) {
-	if salt == nil {
-		salt = make([]byte, 8)
-		// http://www.ietf.org/rfc/rfc2898.txt
-		// Salt.
-		rand.Read(salt)
-	}
-	return pbkdf2.Key([]byte(passphrase), salt, 1000, 32, sha256.New), salt
-}
 
-func encrypt(passphrase, plaintext string) string {
-	key, salt := deriveKey(passphrase, nil)
-	iv := make([]byte, 12)
-	// http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf
-	// Section 8.2
-	rand.Read(iv)
-	b, _ := aes.NewCipher(key)
-	aesgcm, _ := cipher.NewGCM(b)
-	data := aesgcm.Seal(nil, iv, []byte(plaintext), nil)
-	return hex.EncodeToString(salt) + "-" + hex.EncodeToString(iv) + "-" + hex.EncodeToString(data)
-}
-
-func decrypt(passphrase, ciphertext string) string {
-	arr := strings.Split(ciphertext, "-")
-	salt, _ := hex.DecodeString(arr[0])
-	iv, _ := hex.DecodeString(arr[1])
-	data, _ := hex.DecodeString(arr[2])
-	key, _ := deriveKey(passphrase, salt)
-	b, _ := aes.NewCipher(key)
-	aesgcm, _ := cipher.NewGCM(b)
-	data, _ = aesgcm.Open(nil, iv, data, nil)
-	return string(data)
-}
 
 func showAppInfo() {
 	fmt.Printf("ReleaseDate: %s\n", ReleaseDate)

@@ -1,21 +1,7 @@
 package structs
 
 import (
-// 	"crypto/aes"
-// 	"crypto/cipher"
-// 	//"reflect"
-// 	"flag"
-// 	"fmt"
-// 	"github.com/divan/num2words"
-// 	"github.com/jung-kurt/gofpdf"
-// 	"github.com/spf13/viper"
-// 	"os"
-// 	"path"
-// 	"strconv"
-// 	"strings"
- 	"time"
-//   "github.com/gen2brain/beeep"
-//
+	"time"
 )
 
 type ItemFont struct {
@@ -28,6 +14,7 @@ type SaleOrderContentItem struct {
 	Font ItemFont
 	Raw  string
 }
+
 type SaleOrderContent struct {
 	Title SaleOrderContentItem
 	OwnTo SaleOrderContentItem `mapstructure:"own-to"`
@@ -42,22 +29,26 @@ type SignImagePosition struct {
 	//Y float64
 	Rect float64
 }
+
 type SignImage struct {
 	Position SignImagePosition
 	Path     string
 }
+
 type Template struct {
 	SignPathImage string    `mapstructure:"sign-path-image"`
 	SignImage     SignImage `mapstructure:"sign-image"`
 }
+
 type Email struct {
 	From     EmailConfig
-	To       EmailConfig
+	To       []EmailConfig
 	Cc       EmailConfig
 	Subject  string
 	Body     string
 	Template Template
 }
+
 type EmailConfig struct {
 	Email    string
 	FullName string `mapstructure:"full-name"`
@@ -125,3 +116,19 @@ type Config struct {
 	SaleOrder SaleOrder `mapstructure:"sale-order"`
 	Smtp      SmtpConfig
 }
+
+
+
+type FormatEmail struct {
+  EmailFrom string
+  EmailTo string
+  EmailCc string
+  Subject string
+	Pass string
+  Username string
+  Port int
+  Smtp string
+  EmailFromFullName string
+  EmailCcFullName string
+}
+
