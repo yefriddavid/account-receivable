@@ -212,7 +212,7 @@ func startProgram(config structs.Config, formatEmail structs.FormatEmail) {
 	body = strings.Replace(body, "{SaleOrder.NameOfMonth}", config.SaleOrder.FormatDate.Format("January"), -1)
 
 	config.Setting.Email.Body = body
-  formatEmail.Subject = subject
+  formatEmail.Subject = subject // this lines need to be change from here
 
 	utils.GeneratePdf(config, fileName)
 	utils.Send(body, formatEmail, fileName)
