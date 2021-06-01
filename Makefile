@@ -38,9 +38,9 @@ openPdf:
 	xdg-open ../history/charge_account_2020_Jun.pdf
 
 ## local-publish: copy-local-config build binMv
-local-publish: build binMv setConfigPass copy-local-config
-local-publish:
-	@echo published
+#local-publish: build binMv setConfigPass copy-local-config
+#local-publish:
+#	@echo published
 
 configureVersion:
 configureVersion:
@@ -50,9 +50,9 @@ configureVersion:
 #binMv:
 #	sudo mv main /usr/local/bin/AccountsRecievable
 
-build:
-build: ## build application
-	@go build -ldflags "$(LDFLAGS) -X main.SysConfigFile=$(SysConfigFile)" cmd/main.go
+#build:
+#build: ## build application
+#	@go build -ldflags "$(LDFLAGS) -X main.SysConfigFile=$(SysConfigFile)" cmd/main.go
 
 #copy-local-config:
 #copy-local-config: ## Copy file settings
