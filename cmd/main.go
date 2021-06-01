@@ -102,8 +102,11 @@ func main() {
 	}
 	if *justDecrypt == true {
 		// result := decrypt(secret, *rawUnsecureText)
-		result := utils.Decrypt(*secretDecriptPass, *rawUnsecureText)
+		// result := utils.Decrypt(*secretDecriptPass, *rawUnsecureText)
+
+		result := utils.Decrypt(utils.GetSecret(), *rawUnsecureText)
 		fmt.Println(result)
+		//fmt.Println(utils.GetSecret())
 
 		return
 	}
@@ -203,12 +206,13 @@ func startProgram(config structs.Config, formatEmail structs.FormatEmail) {
 		subject = strings.Replace(subject, "{AdditionalSubject}", " ", -1)
 	}
 
-	config.Setting.Email.Subject = subject
+	//config.Setting.Email.Subject = subject
 
 	body := config.Setting.Email.Body
 	body = strings.Replace(body, "{SaleOrder.NameOfMonth}", config.SaleOrder.FormatDate.Format("January"), -1)
 
 	config.Setting.Email.Body = body
+  formatEmail.Subject = subject
 
 	utils.GeneratePdf(config, fileName)
 	utils.Send(body, formatEmail, fileName)
